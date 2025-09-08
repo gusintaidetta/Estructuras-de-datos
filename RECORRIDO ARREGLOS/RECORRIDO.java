@@ -1,4 +1,4 @@
-public class Recorrido {
+public class RECORRIDO {
     public static void main(String[] args) {
         int[] arreglo = {10, 20, 30, 40, 50};
 
