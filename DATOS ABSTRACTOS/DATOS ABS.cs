@@ -4,21 +4,20 @@ class Persona {
     public int edad;
 
 
-    // Constructor
+    
     public Persona(string nombre, int edad) {
         this.nombre = nombre;
         this.edad = edad;
     }
 
 
-    // Método
     public string Saludar() {
         return $"Hola, soy {nombre} y tengo {edad} años.";
     }
 }
 
 
-// Uso del TDA
+// Uso del DATO abs
 class Program
 {
     static void Main()

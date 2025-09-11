@@ -1,7 +1,7 @@
 let arreglo = [10, 20, 30, 40, 50];
 
-// Simulación de entrada de usuario
-let num = 30;  // En navegador se podría usar: let num = parseInt(prompt("¿Qué número buscas?"));
+
+let num = 30;  
 
 let encontrado = false;
 for (let elemento of arreglo) {

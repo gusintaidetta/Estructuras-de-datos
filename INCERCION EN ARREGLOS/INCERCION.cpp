@@ -11,7 +11,7 @@ int main() {
     }
     cout << endl;
 
-    arreglo.push_back(35); // Inserta al final
+    arreglo.push_back(35); 
 
     cout << "Arreglo después de insertar: ";
     for (int num : arreglo) {

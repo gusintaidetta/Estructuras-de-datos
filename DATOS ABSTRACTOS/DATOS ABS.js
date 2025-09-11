@@ -9,6 +9,6 @@ class Persona {
 }
 
 
-// Uso del TDA
+// Uso del dato abs
 let p1 = new Persona("Gustavo", 20);
 console.log(p1.saludar());
