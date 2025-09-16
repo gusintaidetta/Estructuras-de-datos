@@ -71,23 +71,23 @@ def verificar_resultado(tablero, jugador_uno, jugador_dos):
     ]
 
     for c in combinaciones:
-        if tablero[c[2]] == tablero[c[3]] == tablero[c[4]] == 'X':
-            print(f'🎉 ¡Felicidades {jugador_uno}! Ganaste.')
+        if tablero[c[0]] == tablero[c[1]] == tablero[c[2]] == 'X':
+            print(f' ¡Felicidades {jugador_uno}! Ganaste.')
             quit('Gracias por jugar.')
         elif tablero[c[0]] == tablero[c[1]] == tablero[c[2]] == 'O':
-            print(f'🎉 ¡Felicidades {jugador_dos}! Ganaste.')
+            print(f' ¡Felicidades {jugador_dos}! Ganaste.')
             quit('Gracias por jugar.')
     return
 
 
 def main():
-    print("Bienvenidos al juego del Gato 🐱")
+    print("Bienvenidos al juego del Gato ")
     jugador_uno = input("Ingrese el nombre del Jugador 1: ")
     jugador_dos = input("Ingrese el nombre del Jugador 2: ")
     print(f"Gracias por unirse {jugador_uno} y {jugador_dos}")
     print(instrucciones)
-    print(f"El símbolo de {jugador_uno} será - X")
-    print(f"El símbolo de {jugador_dos} será - O")
+    print(f"El símbolo de {jugador_uno} será = X")
+    print(f"El símbolo de {jugador_dos} será = O")
     input("Presiona cualquier tecla para comenzar el juego: ")
     imprimir_tablero(tablero)
 
@@ -102,7 +102,7 @@ def main():
         imprimir_tablero(tablero)
         verificar_resultado(tablero, jugador_uno, jugador_dos)
 
-    print("🤝 ¡Es un empate! Nadie ganó, intenten de nuevo.")
+    print("¡Es un empate! Nadie ganó, intenten de nuevo.")
 
 
 main()
