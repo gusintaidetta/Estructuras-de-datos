@@ -3,6 +3,7 @@ using System.Threading;
 
 class Program
 {
+    // Revision del dia 26/09/25
     // Tamaño del tablero (10x10)
     const int SIZE = 10;
 
