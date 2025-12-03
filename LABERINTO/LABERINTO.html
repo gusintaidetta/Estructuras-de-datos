@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape del Laberinto RPG</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e6e6e6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #4cc9f0;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+        }
+        
+        .subtitle {
+            color: #8d99ae;
+            font-size: 1.1rem;
+        }
+        
+        .game-container {
+            display: flex;
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .maze-section {
+            flex: 1;
+        }
+        
+        .maze-container {
+            background: #0f3460;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .maze {
+            display: grid;
+            grid-template-columns: repeat(25, 20px);
+            grid-template-rows: repeat(25, 20px);
+            gap: 1px;
+            background-color: #1a1a2e;
+            border: 3px solid #4cc9f0;
+            border-radius: 5px;
+            margin: 0 auto;
+        }
+        
+        .cell {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 10px;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+        
+        .wall {
+            background: linear-gradient(145deg, #0a1931, #0f3460);
+            border: 1px solid #1a1a2e;
+        }
+        
+        .path {
+            background-color: #1a1a2e;
+        }
+        
+        .discovered-path {
+            background: linear-gradient(145deg, #16213e, #1a1a2e);
+            border: 1px solid #0f3460;
+        }
+        
+        .player {
+            background: linear-gradient(145deg, #4cc9f0, #3aa8d0);
+            border-radius: 50%;
+            box-shadow: 0 0 5px #4cc9f0;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .key {
+            background: linear-gradient(145deg, #ffd166, #e6b850);
+            color: #1a1a2e;
+            border-radius: 50%;
+        }
+        
+        .teleport-key {
+            background: linear-gradient(145deg, #7209b7, #5a078f);
+            color: white;
+            border-radius: 50%;
+        }
+        
+        .point {
+            background: linear-gradient(145deg, #06d6a0, #05b888);
+            color: #1a1a2e;
+            border-radius: 50%;
+        }
+        
+        .trap {
+            background: linear-gradient(145deg, #ef476f, #d63a5f);
+            color: white;
+            border-radius: 2px;
+        }
+        
+        .door {
+            background: linear-gradient(145deg, #8d99ae, #728197);
+            color: #1a1a2e;
+        }
+        
+        .exit {
+            background: linear-gradient(145deg, #06d6a0, #05b888);
+            color: #1a1a2e;
+            border-radius: 2px;
+            animation: glow 1.5s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 5px #06d6a0; }
+            to { box-shadow: 0 0 10px #06d6a0; }
+        }
+        
+        .teleport-door {
+            background: linear-gradient(145deg, #7209b7, #5a078f);
+            color: white;
+            animation: glow-purple 1.5s infinite alternate;
+        }
+        
+        @keyframes glow-purple {
+            from { box-shadow: 0 0 5px #7209b7; }
+            to { box-shadow: 0 0 10px #7209b7; }
+        }
+        
+        .health-item {
+            background: linear-gradient(145deg, #ff9e00, #e68a00);
+            color: #1a1a2e;
+            border-radius: 2px;
+        }
+        
+        .ui-section {
+            flex: 0 0 300px;
+        }
+        
+        .ui-panel {
+            background: #0f3460;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            height: 100%;
+        }
+        
+        .panel-section {
+            margin-bottom: 25px;
+        }
+        
+        .panel-title {
+            color: #4cc9f0;
+            border-bottom: 2px solid #4cc9f0;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stat-label {
+            color: #8d99ae;
+            font-size: 0.9rem;
+        }
+        
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #e6e6e6;
+        }
+        
+        .health-bar-container {
+            background: #1a1a2e;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .health-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ef476f 0%, #ff9e00 50%, #06d6a0 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .inventory-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: #1a1a2e;
+            border-radius: 5px;
+        }
+        
+        .item-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        
+        .item-count {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .control-key {
+            background: #1a1a2e;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .action-btn {
+            background: #4cc9f0;
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .action-btn:hover {
+            background: #3aa8d0;
+            transform: translateY(-2px);
+        }
+        
+        .action-btn:disabled {
+            background: #8d99ae;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .message-box {
+            background: #1a1a2e;
+            border-left: 4px solid #4cc9f0;
+            padding: 15px;
+            border-radius: 5px;
+            min-height: 60px;
+            margin-top: 20px;
+        }
+        
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        
+        .level-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #0f3460;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #4cc9f0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        @media (max-width: 1100px) {
+            .game-container {
+                flex-direction: column;
+            }
+            
+            .ui-section {
+                flex: 1;
+            }
+            
+            .maze {
+                grid-template-columns: repeat(25, 15px);
+                grid-template-rows: repeat(25, 15px);
+            }
+            
+            .cell {
+                width: 15px;
+                height: 15px;
+                font-size: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="level-indicator">Nivel <span id="level">1</span></div>
+    
+    <div class="header">
+        <h1>Escape del Laberinto RPG</h1>
+        <p class="subtitle">Encuentra la salida, evita trampas y recolecta tesoros</p>
+    </div>
+    
+    <div class="game-container">
+        <div class="maze-section">
+            <div class="maze-container">
+                <div class="maze" id="maze"></div>
+            </div>
+        </div>
+        
+        <div class="ui-section">
+            <div class="ui-panel">
+                <div class="panel-section">
+                    <h3 class="panel-title">Estadísticas del Jugador</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Vidas</span>
+                            <span class="stat-value" id="lives">3</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Puntuación</span>
+                            <span class="stat-value" id="score">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Salud</span>
+                            <span class="stat-value" id="health">100</span>/100
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Posición</span>
+                            <span class="stat-value" id="position">1,1</span>
+                        </div>
+                    </div>
+                    <div class="health-bar-container">
+                        <div class="health-bar" id="health-bar" style="width: 100%;"></div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3 class="panel-title">Inventario</h3>
+                    <div class="inventory-grid">
+                        <div class="inventory-item">
+                            <div class="item-icon key">K</div>
+                            <span>Llaves:</span>
+                            <span class="item-count" id="keys">0</span>
+                        </div>
+                        <div class="inventory-item">
+                            <div class="item-icon teleport-key">T</div>
+                            <span>Llaves TP:</span>
+                            <span class="item-count" id="teleport-keys">0</span>
+                        </div>
+                        <div class="inventory-item">
+                            <div class="item-icon health-item">H</div>
+                            <span>Curaciones:</span>
+                            <span class="item-count" id="health-items">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3 class="panel-title">Controles</h3>
+                    <div class="controls">
+                        <p>Usa las teclas WASD para moverte</p>
+                        <div class="controls-grid">
+                            <div></div>
+                            <div class="control-key">W</div>
+                            <div></div>
+                            <div class="control-key">A</div>
+                            <div class="control-key">S</div>
+                            <div class="control-key">D</div>
+                        </div>
+                    </div>
+                    <button class="action-btn" id="use-health">Usar Objeto de Curación</button>
+                </div>
+                
+                <div class="panel-section">
+                    <h3 class="panel-title">Mensajes</h3>
+                    <div class="message-box" id="message">
+                        ¡Bienvenido! Encuentra la salida del laberinto.
+                    </div>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color wall"></div>
+                        <span>Pared</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color player"></div>
+                        <span>Jugador</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color key"></div>
+                        <span>Llave</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color teleport-key"></div>
+                        <span>Llave TP</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color point"></div>
+                        <span>Punto</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color trap"></div>
+                        <span>Trampa</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color door"></div>
+                        <span>Puerta</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color exit"></div>
+                        <span>Salida</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const MAZE_SIZE = 25;
+        const TOTAL_LEVELS = 4;
+        
+        const WALL = 0;
+        const PATH = 1;
+        const KEY = 2;
+        const TELEPORT_KEY = 3;
+        const POINT = 4;
+        const TRAP = 5;
+        const DOOR = 6;
+        const EXIT = 7;
+        const TELEPORT_DOOR = 8;
+        const HEALTH_ITEM = 9;
+        const PLAYER = 10;
+        
+        let gameState = {
+            level: 1,
+            lives: 3,
+            score: 0,
+            health: 100,
+            keys: 0,
+            teleportKeys: 0,
+            healthItems: 0,
+            playerPosition: { x: 1, y: 1 },
+            maze: [],
+            discovered: [],
+            totalDoors: 0,
+            totalKeys: 0
+        };
+        
+        function initGame() {
+            generateMaze();
+            renderMaze();
+            updateUI();
+            showMessage("¡Bienvenido! Encuentra la salida del laberinto. Usa WASD para moverte.");
+            
+            document.addEventListener('keydown', handleKeyPress);
+            document.getElementById('use-health').addEventListener('click', useHealthItem);
+        }
+        
+        function generateMaze() {
+            gameState.maze = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(WALL));
+            gameState.discovered = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(false));
+            
+            generateMazeDFS(1, 1);
+            placeElementsStrategically();
+            
+            gameState.playerPosition = { x: 1, y: 1 };
+            gameState.maze[1][1] = PLAYER;
+            discoverArea(1, 1);
+        }
+        
+        function generateMazeDFS(x, y) {
+            const directions = [
+                { dx: 0, dy: -2 },
+                { dx: 2, dy: 0 },
+                { dx: 0, dy: 2 },
+                { dx: -2, dy: 0 }
+            ];
+            
+            shuffleArray(directions);
+            gameState.maze[y][x] = PATH;
+            
+            for (const dir of directions) {
+                const nx = x + dir.dx;
+                const ny = y + dir.dy;
+                
+                if (nx > 0 && nx < MAZE_SIZE - 1 && ny > 0 && ny < MAZE_SIZE - 1 && gameState.maze[ny][nx] === WALL) {
+                    gameState.maze[y + dir.dy / 2][x + dir.dx / 2] = PATH;
+                    generateMazeDFS(nx, ny);
+                }
+            }
+        }
+        
+        function placeElementsStrategically() {
+            const trapCount = 5 + (gameState.level * 2);
+            const pointCount = 10 + (gameState.level * 2);
+            gameState.totalDoors = 2;
+            gameState.totalKeys = gameState.totalDoors + 1;
+            const healthItemCount = 2;
+            
+            const allPaths = [];
+            for (let y = 1; y < MAZE_SIZE - 1; y++) {
+                for (let x = 1; x < MAZE_SIZE - 1; x++) {
+                    if (gameState.maze[y][x] === PATH) {
+                        allPaths.push({x, y, distance: Math.abs(x-1) + Math.abs(y-1)});
+                    }
+                }
+            }
+            
+            if (allPaths.length === 0) return;
+            
+            allPaths.sort((a, b) => a.distance - b.distance);
+            
+            for (let i = 0; i < gameState.totalKeys && i < allPaths.length; i++) {
+                const keyPos = allPaths[i];
+                gameState.maze[keyPos.y][keyPos.x] = KEY;
+            }
+            
+            allPaths.splice(0, gameState.totalKeys);
+            
+            for (let i = 0; i < gameState.totalDoors && allPaths.length > 0; i++) {
+                const doorIndex = Math.min(Math.floor(allPaths.length * 0.7) + i, allPaths.length - 1);
+                const doorPos = allPaths[doorIndex];
+                gameState.maze[doorPos.y][doorPos.x] = DOOR;
+                allPaths.splice(doorIndex, 1);
+            }
+            
+            if (allPaths.length > 0) {
+                const exitPos = allPaths[allPaths.length - 1];
+                gameState.maze[exitPos.y][exitPos.x] = EXIT;
+                allPaths.pop();
+            }
+            
+            if (gameState.level > 1 && allPaths.length > 1) {
+                const teleportDoorIndex = Math.floor(allPaths.length * 0.8);
+                const teleportKeyIndex = Math.floor(allPaths.length * 0.3);
+                if (teleportDoorIndex < allPaths.length) {
+                    gameState.maze[allPaths[teleportDoorIndex].y][allPaths[teleportDoorIndex].x] = TELEPORT_DOOR;
+                }
+                if (teleportKeyIndex < allPaths.length) {
+                    gameState.maze[allPaths[teleportKeyIndex].y][allPaths[teleportKeyIndex].x] = TELEPORT_KEY;
+                }
+            }
+            
+            shuffleArray(allPaths);
+            
+            for (let i = 0; i < pointCount && allPaths.length > 0; i++) {
+                const pointPos = allPaths.pop();
+                gameState.maze[pointPos.y][pointPos.x] = POINT;
+            }
+            
+            let trapsPlaced = 0;
+            while (trapsPlaced < trapCount && allPaths.length > 0) {
+                const trapPos = allPaths.pop();
+                if (trapPos.distance > 8) {
+                    gameState.maze[trapPos.y][trapPos.x] = TRAP;
+                    trapsPlaced++;
+                }
+            }
+            
+            for (let i = 0; i < healthItemCount && allPaths.length > 0; i++) {
+                const healthPos = allPaths.pop();
+                gameState.maze[healthPos.y][healthPos.x] = HEALTH_ITEM;
+            }
+        }
+        
+        function renderMaze() {
+            const mazeElement = document.getElementById('maze');
+            mazeElement.innerHTML = '';
+            
+            for (let y = 0; y < MAZE_SIZE; y++) {
+                for (let x = 0; x < MAZE_SIZE; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    
+                    if (gameState.discovered[y][x]) {
+                        const cellType = gameState.maze[y][x];
+                        switch (cellType) {
+                            case WALL:
+                                cell.classList.add('wall');
+                                break;
+                            case PATH:
+                                cell.classList.add('discovered-path');
+                                break;
+                            case KEY:
+                                cell.classList.add('key');
+                                cell.textContent = 'K';
+                                break;
+                            case TELEPORT_KEY:
+                                cell.classList.add('teleport-key');
+                                cell.textContent = 'T';
+                                break;
+                            case POINT:
+                                cell.classList.add('point');
+                                cell.textContent = 'P';
+                                break;
+                            case TRAP:
+                                cell.classList.add('trap');
+                                cell.textContent = 'X';
+                                break;
+                            case DOOR:
+                                cell.classList.add('door');
+                                cell.textContent = 'D';
+                                break;
+                            case EXIT:
+                                cell.classList.add('exit');
+                                cell.textContent = 'E';
+                                break;
+                            case TELEPORT_DOOR:
+                                cell.classList.add('teleport-door');
+                                cell.textContent = 'Q';
+                                break;
+                            case HEALTH_ITEM:
+                                cell.classList.add('health-item');
+                                cell.textContent = 'H';
+                                break;
+                            case PLAYER:
+                                cell.classList.add('player');
+                                break;
+                            default:
+                                cell.classList.add('path');
+                        }
+                    } else {
+                        cell.classList.add('path');
+                    }
+                    
+                    mazeElement.appendChild(cell);
+                }
+            }
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key.toLowerCase() === 'u') {
+                useHealthItem();
+                return;
+            }
+            
+            if (!['w', 'a', 's', 'd'].includes(event.key.toLowerCase())) {
+                return;
+            }
+            
+            let newX = gameState.playerPosition.x;
+            let newY = gameState.playerPosition.y;
+            
+            switch (event.key.toLowerCase()) {
+                case 'w': newY--; break;
+                case 's': newY++; break;
+                case 'a': newX--; break;
+                case 'd': newX++; break;
+            }
+            
+            if (newX < 0 || newX >= MAZE_SIZE || newY < 0 || newY >= MAZE_SIZE) {
+                showMessage("¡No puedes salir del laberinto!");
+                return;
+            }
+            
+            const targetCell = gameState.maze[newY][newX];
+            
+            if (targetCell === WALL) {
+                showMessage("¡Hay una pared en el camino!");
+                return;
+            }
+            
+            if (targetCell === DOOR) {
+                if (gameState.keys > 0) {
+                    gameState.keys--;
+                    showMessage("Has usado una llave para abrir la puerta.");
+                } else {
+                    showMessage("Necesitas una llave para abrir esta puerta.");
+                    return;
+                }
+            }
+            
+            if (targetCell === TELEPORT_DOOR) {
+                if (gameState.teleportKeys > 0) {
+                    gameState.teleportKeys--;
+                    nextLevel();
+                    return;
+                } else {
+                    showMessage("Necesitas una llave teletransportadora para usar esta puerta.");
+                    return;
+                }
+            }
+            
+            gameState.maze[gameState.playerPosition.y][gameState.playerPosition.x] = PATH;
+            gameState.playerPosition.x = newX;
+            gameState.playerPosition.y = newY;
+            
+            discoverArea(newX, newY);
+            checkCellContent(newX, newY);
+            
+            gameState.maze[newY][newX] = PLAYER;
+            renderMaze();
+            updateUI();
+        }
+        
+        function discoverArea(x, y) {
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    const newX = x + dx;
+                    const newY = y + dy;
+                    
+                    if (newX >= 0 && newX < MAZE_SIZE && newY >= 0 && newY < MAZE_SIZE) {
+                        gameState.discovered[newY][newX] = true;
+                    }
+                }
+            }
+        }
+        
+        function checkCellContent(x, y) {
+            const cellContent = gameState.maze[y][x];
+            
+            switch (cellContent) {
+                case KEY:
+                    gameState.keys++;
+                    showMessage(`¡Has encontrado una llave! (${gameState.keys}/${gameState.totalDoors})`);
+                    gameState.maze[y][x] = PATH;
+                    break;
+                    
+                case TELEPORT_KEY:
+                    gameState.teleportKeys++;
+                    showMessage("¡Has encontrado una llave teletransportadora!");
+                    gameState.maze[y][x] = PATH;
+                    break;
+                    
+                case POINT:
+                    gameState.score += 10;
+                    showMessage("+10 puntos");
+                    gameState.maze[y][x] = PATH;
+                    break;
+                    
+                case TRAP:
+                    gameState.health -= 25;
+                    showMessage("¡Trampa! -25 de vida");
+                    gameState.maze[y][x] = PATH;
+                    
+                    if (gameState.health <= 0) {
+                        playerDeath();
+                    }
+                    break;
+                    
+                case HEALTH_ITEM:
+                    gameState.healthItems++;
+                    showMessage("¡Has encontrado un objeto de curación!");
+                    gameState.maze[y][x] = PATH;
+                    break;
+                    
+                case EXIT:
+                    if (gameState.level === TOTAL_LEVELS) {
+                        showMessage("¡Felicidades! Has completado todos los niveles.");
+                        setTimeout(resetGame, 2000);
+                    } else {
+                        nextLevel();
+                    }
+                    break;
+            }
+        }
+        
+        function nextLevel() {
+            gameState.level++;
+            
+            if (gameState.level > TOTAL_LEVELS) {
+                showMessage("¡Felicidades! Has completado el juego.");
+                setTimeout(resetGame, 2000);
+            } else {
+                showMessage(`¡Pasaste al nivel ${gameState.level}! La dificultad aumenta.`);
+                setTimeout(() => {
+                    generateMaze();
+                    renderMaze();
+                    updateUI();
+                }, 1500);
+            }
+        }
+        
+        function playerDeath() {
+            gameState.lives--;
+            
+            if (gameState.lives <= 0) {
+                showMessage("¡Game Over! Has perdido todas tus vidas.");
+                setTimeout(resetGame, 2000);
+            } else {
+                showMessage("¡Has muerto! Pierdes una vida y reinicias el nivel.");
+                setTimeout(() => {
+                    gameState.health = 100;
+                    gameState.keys = 0;
+                    gameState.teleportKeys = 0;
+                    generateMaze();
+                    renderMaze();
+                    updateUI();
+                }, 1500);
+            }
+        }
+        
+        function useHealthItem() {
+            if (gameState.healthItems > 0) {
+                gameState.healthItems--;
+                gameState.health = Math.min(100, gameState.health + 50);
+                showMessage("Has usado un objeto de curación. +50 de vida.");
+                updateUI();
+            } else {
+                showMessage("No tienes objetos de curación.");
+            }
+        }
+        
+        function updateUI() {
+            document.getElementById('level').textContent = gameState.level;
+            document.getElementById('lives').textContent = gameState.lives;
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('health').textContent = gameState.health;
+            document.getElementById('health-bar').style.width = `${gameState.health}%`;
+            document.getElementById('keys').textContent = gameState.keys;
+            document.getElementById('teleport-keys').textContent = gameState.teleportKeys;
+            document.getElementById('health-items').textContent = gameState.healthItems;
+            document.getElementById('position').textContent = `${gameState.playerPosition.x},${gameState.playerPosition.y}`;
+            
+            document.getElementById('use-health').disabled = gameState.healthItems === 0;
+        }
+        
+        function showMessage(text) {
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = text;
+        }
+        
+        function resetGame() {
+            gameState = {
+                level: 1,
+                lives: 3,
+                score: 0,
+                health: 100,
+                keys: 0,
+                teleportKeys: 0,
+                healthItems: 0,
+                playerPosition: { x: 1, y: 1 },
+                maze: [],
+                discovered: [],
+                totalDoors: 0,
+                totalKeys: 0
+            };
+            
+            generateMaze();
+            renderMaze();
+            updateUI();
+            showMessage("¡Juego reiniciado!");
+        }
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+        
+        window.onload = initGame;
+    </script>
+</body>
+</html>
